@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vinoteca Elegante - Wine Price Predictor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/bickham-script-pro" rel="stylesheet">
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/bickham-script-pro');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Bickham Script Pro', 'Brush Script MT', cursive;
+            background: #722f37;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Input Screen - Full Screen */
+        .input-screen {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 1;
+            transition: opacity 1s ease-out;
+        }
+
+        .input-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Results Screen - Full Screen */
+        .results-screen {
+            width: 100%;
+            min-height: 100vh;
+            display: block;
+            opacity: 0;
+            padding: 20px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: opacity 1s ease-in;
+            pointer-events: none;
+        }
+
+        .results-screen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .header {
+            text-align: center;
+            color: #fff8e7;
+            margin-bottom: 30px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header h1 {
+            font-family: 'Bickham Script Pro', cursive;
+            font-size: 6em;
+            font-weight: 400;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            font-family: 'Bickham Script Pro', cursive;
+            font-size: 2.5em;
+            font-weight: 300;
+            opacity: 0.95;
+        }
+
+        .card {
+            background: rgba(255, 248, 231, 0.95);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease;
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .card h2 {
+            font-family: 'Bickham Script Pro', cursive;
+            font-size: 4em;
+            color: #722f37;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 400;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-family: 'Bickham Script Pro', cursive;
+            font-size: 1.8em;
+            font-weight: 400;
+            color: #722f37;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 16px 20px;
+            border: 3px solid #722f37;
+            border-radius: 15px;
+            font-size: 1.3em;
+            transition: all 0.3s ease;
+            font-family: 'Lato', sans-serif;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #a0522d;
+            box-shadow: 0 0 0 4px rgba(114, 47, 55, 0.2);
+        }
+
+        .predict-btn {
+            width: 100%;
+            padding: 20px;
+            background: #722f37;
+            color: #fff8e7;
+            border: none;
+            border-radius: 15px;
+            font-family: 'Bickham Script Pro', cursive;
+            font-size: 2.2em;
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+            background: #8b3a44;
+        }
+
+        .predict-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Results Page Styling */
+        .results-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+            display: none;
+        }
+        
+        .results-container.active {
+            display: block;
+        }
+
+        .intro-text {
+            font-family: 'Bickham Script Pro', cursive;
+            font-size: 3em;
+            color: #fff8e7;
+            margin-bottom: 20px;
+            line-height: 1.4;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .intro-text .params {
+            color: #ffd700;
+            font-size: 1.1em;
+            font-weight: 700;
+        }
+
+        .price-hero {
+            background: rgba(255, 248, 231, 0.95);
+            border-radius: 30px;
+            padding: 30px 40px;
+            margin: 20px auto;
+            max-width: 700px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+        }
+
+        .price-hero h2 {
+            font-family: 'Bickham Script Pro', cursive;
+            font-size: 2.5em;
+            color: #722f37;
+            margin-bottom: 15px;
+            font-weight: 400;
+        }
+
+        .price-hero .price {
+            font-family: 'Bickham Script Pro', cursive;
+            font-size: 12em;
+            color: #722f37;
+            font-weight: 400;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.2);
+        }
+
+        .carousel-container {
+            background: rgba(255, 248, 231, 0.95);
+            border-radius: 30px;
+            padding: 30px;
+            margin: 30px auto;
+            max-width: 1200px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+            position: relative;
+        }
+
+        .carousel-slide {
+            display: none;
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        .carousel-slide.active {
+            display: block;
+        }
+
+        .wine-intro {
+            margin-bottom: 40px;
+        }
+
+        .wine-intro h3 {
+            font-family: 'Bickham Script Pro', cursive;
+            font-size: 4em;
+            color: #722f37;
+            margin-bottom: 15px;
+            font-weight: 400;
+        }
+
+        .wine-intro .wine-details {
+            font-family: 'Lato', sans-serif;
+            font-size: 2em;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .wine-intro .fancy-name {
+            font-family: 'Bickham Script Pro', cursive;
+            font-size: 1.2em;
+            color: #8b3a44;
+            font-style: italic;
+        }
+
+        .backstory-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+
+        .backstory-graphics {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .wine-bottle-graphic {
+            max-width: 180px;
+            height: auto;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .winery-graphic {
+            max-width: 150px;
+            height: auto;
+            opacity: 0.9;
+        }
+
+        .backstory-text {
+            flex: 1;
+            min-width: 400px;
+            max-width: 600px;
+        }
+
+        .backstory-text h4 {
+            font-family: 'Bickham Script Pro', cursive;
+            font-size: 3em;
+            color: #722f37;
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+
+        .backstory-text p {
+            font-family: 'Lato', sans-serif;
+            font-size: 1.5em;
+            color: #333;
+            line-height: 1.8;
+            text-align: left;
+        }
+
+        .carousel-nav {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .carousel-btn {
+            padding: 18px 45px;
+            background: #722f37;
+            color: #fff8e7;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: 'Bickham Script Pro', cursive;
+            font-size: 2em;
+            font-weight: 400;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .carousel-btn:hover {
+            background: #8b3a44;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+        }
+
+        .carousel-indicator {
+            text-align: center;
+            margin-top: 20px;
+            color: #722f37;
+            font-family: 'Bickham Script Pro', cursive;
+            font-size: 1.8em;
+        }
+
+        .wine-bottle-section {
+            display: none; /* Hide old section */
+        }
+
+        .price-display {
+            display: none; /* Hide old price display */
+        }
+
+        .wine-name {
+            display: none; /* Hide old wine name */
+        }
+
+        .vineyard-graphics {
+            display: none; /* Hide old vineyard graphics */
+        }
+
+        .slideshow {
+            display: none; /* Hide old slideshow */
+        }
+
+        .slideshow-controls {
+            display: none; /* Hide old controls */
+        }
+
+        .slide-indicator {
+            display: none; /* Hide old indicator */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 968px) {
+            .header h1 {
+                font-size: 4em;
+            }
+            
+            .header p {
+                font-size: 1.8em;
+            }
+            
+            .wine-bottle-section {
+                flex-direction: column;
+            }
+            
+            .card {
+                padding: 30px;
+            }
+            
+            .card h2 {
+                font-size: 3em;
+            }
+            
+            .wine-name {
+                font-size: 2.5em;
+            }
+            
+            .price-display .price {
+                font-size: 4em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Input Screen -->
+        <div class="input-screen" id="inputScreen">
+            <div>
+                <div class="header">
+                    <h1>🍷 Vinoteca Elegante</h1>
+                    <p>Discover the Perfect Price for Your Perfect Wine</p>
+                </div>
+
+                <div class="card">
+                    <h2>Wine Details</h2>
+                    <form id="wineForm">
+                        <div class="form-group">
+                            <label for="age">Wine Age (years)</label>
+                            <input type="number" id="age" name="age" min="0" max="100" value="10" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="rating">Rating (1.0 - 5.0)</label>
+                            <input type="number" id="rating" name="rating" min="1.0" max="5.0" step="0.1" value="4.0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="num_ratings">Number of Ratings</label>
+                            <input type="number" id="num_ratings" name="num_ratings" min="1" max="10000" value="100" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="grape">Grape Variety</label>
+                            <select id="grape" name="grape" required>
+                                {% for grape in grapes %}
+                                <option value="{{ grape }}">{{ grape }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="country">Country</label>
+                            <select id="country" name="country" required>
+                                {% for country in countries %}
+                                <option value="{{ country }}">{{ country }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="region">Region</label>
+                            <select id="region" name="region" required>
+                                {% for region in regions %}
+                                <option value="{{ region }}">{{ region }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="winery">Winery</label>
+                            <select id="winery" name="winery" required>
+                                {% for winery in wineries %}
+                                <option value="{{ winery }}">{{ winery }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <button type="submit" class="predict-btn">✨ Predict Wine Price ✨</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div class="results-screen" id="resultsScreen">
+            <div class="results-container" id="resultsContainer">
+                <div class="intro-text">
+                    A bottle of wine made from <span class="params" id="grapeParam"></span> from <span class="params" id="regionParam"></span>, <span class="params" id="countryParam"></span>, aged <span class="params" id="ageParam"></span> years, rated <span class="params" id="ratingParam"></span>/5.0 would be valued at...
+                </div>
+
+                <div class="price-hero">
+                    <h2>Estimated Value</h2>
+                    <div class="price" id="predictedPrice">$0.00</div>
+                </div>
+
+                <div class="carousel-container">
+                    <div id="carouselContent"></div>
+                    
+                    <div class="carousel-nav">
+                        <button class="carousel-btn" id="prevCarouselBtn">← Previous</button>
+                        <button class="carousel-btn" id="nextCarouselBtn">Next →</button>
+                    </div>
+                    
+                    <div class="carousel-indicator" id="carouselIndicator"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        let carouselSlides = [];
+        let wineryGraphics = [
+            'https://www.nicepng.com/png/full/122-1223363_history-vineyard-png.png',
+            'https://png.pngtree.com/element_our/20200630/ourmid/pngtree-winery-estate-image_2275173.jpg',
+            'https://png.pngtree.com/element_our/20200701/ourmid/pngtree-vineyard-winery-hand-drawn-image_2277197.jpg'
+        ];
+
+        document.getElementById('wineForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            console.log('Form submitted');
+            
+            const inputScreen = document.getElementById('inputScreen');
+            const resultsScreen = document.getElementById('resultsScreen');
+            const resultsContainer = document.getElementById('resultsContainer');
+            
+            const formData = {
+                age: parseInt(document.getElementById('age').value),
+                rating: parseFloat(document.getElementById('rating').value),
+                num_ratings: parseInt(document.getElementById('num_ratings').value),
+                grape: document.getElementById('grape').value,
+                country: document.getElementById('country').value,
+                region: document.getElementById('region').value,
+                winery: document.getElementById('winery').value
+            };
+
+            console.log('Form data:', formData);
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                console.log('Response received:', response.status);
+
+                const data = await response.json();
+                console.log('Data:', data);
+                
+                if (data.success) {
+                    // Set parameters individually
+                    document.getElementById('grapeParam').textContent = formData.grape;
+                    document.getElementById('regionParam').textContent = formData.region;
+                    document.getElementById('countryParam').textContent = formData.country;
+                    document.getElementById('ageParam').textContent = formData.age;
+                    document.getElementById('ratingParam').textContent = formData.rating;
+                    
+                    // Set price
+                    document.getElementById('predictedPrice').textContent = `$${data.predicted_price.toFixed(2)}`;
+                    
+                    // Create carousel slides
+                    createCarousel(data.wine_name, formData.winery, data.story);
+                    
+                    console.log('Carousel created');
+                    
+                    // Fade out input, show results
+                    inputScreen.classList.add('fade-out');
+                    
+                    setTimeout(() => {
+                        resultsScreen.classList.add('active');
+                        resultsContainer.classList.add('active');
+                        console.log('Results displayed');
+                    }, 1000);
+                } else {
+                    console.error('Prediction failed:', data.error);
+                    alert('Error: ' + data.error);
+                    resultsScreen.classList.remove('active');
+                    inputScreen.classList.remove('fade-out');
+                }
+            } catch (error) {
+                console.error('Error making prediction:', error);
+                alert('Error making prediction: ' + error);
+                resultsScreen.classList.remove('active');
+                inputScreen.classList.remove('fade-out');
+            }
+        });
+
+        function createCarousel(wineName, winery, story) {
+            const carouselContent = document.getElementById('carouselContent');
+            carouselContent.innerHTML = '';
+            
+            // Slide 1: Wine Introduction
+            const slide1 = document.createElement('div');
+            slide1.className = 'carousel-slide active';
+            slide1.innerHTML = `
+                <div class="wine-intro">
+                    <h3>Introducing...</h3>
+                    <div class="wine-details">
+                        This bottle is the <span class="fancy-name">${wineName}</span> from the ${winery} winery
+                    </div>
+                </div>
+            `;
+            carouselContent.appendChild(slide1);
+            
+            // Slides 2-6: Backstory with graphics
+            story.slides.forEach((slideText, index) => {
+                const slide = document.createElement('div');
+                slide.className = 'carousel-slide';
+                
+                slide.innerHTML = `
+                    <div class="backstory-section">
+                        <div class="backstory-graphics">
+                            <img src="https://images.vexels.com/media/users/3/215895/isolated/preview/36ec60399b703a700d20bec25f1c2ce8-wine-bottle-and-glass-stroke.png" 
+                                 class="wine-bottle-graphic" alt="Wine Bottle">
+                        </div>
+                        <div class="backstory-text">
+                            <h4>${index === 0 ? story.title : 'Chapter ' + (index + 1)}</h4>
+                            <p>${slideText}</p>
+                        </div>
+                    </div>
+                `;
+                carouselContent.appendChild(slide);
+            });
+            
+            carouselSlides = document.querySelectorAll('.carousel-slide');
+            currentSlide = 0;
+            updateCarouselIndicator();
+        }
+
+        function showCarouselSlide(index) {
+            carouselSlides.forEach((slide, i) => {
+                slide.classList.toggle('active', i === index);
+            });
+            updateCarouselIndicator();
+        }
+
+        function updateCarouselIndicator() {
+            const indicator = document.getElementById('carouselIndicator');
+            if (indicator && carouselSlides.length > 0) {
+                indicator.textContent = `Slide ${currentSlide + 1} of ${carouselSlides.length}`;
+            }
+        }
+
+        document.getElementById('nextCarouselBtn').addEventListener('click', () => {
+            currentSlide = (currentSlide + 1) % carouselSlides.length;
+            showCarouselSlide(currentSlide);
+        });
+
+        document.getElementById('prevCarouselBtn').addEventListener('click', () => {
+            currentSlide = (currentSlide - 1 + carouselSlides.length) % carouselSlides.length;
+            showCarouselSlide(currentSlide);
+        });
+    </script>
+</body>
+</html>
